@@ -10,7 +10,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.4"
+App.version = "v1.5"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -44,6 +44,25 @@ function App:calculateScale()
     end
 end
 
+function App:updateLayout()
+    self.width, self.height = self.term.getSize()
+    self.scale = self:calculateScale()
+    local columns = (self.width >= 32) and 2 or 1
+    local availableHeight = math.max(1, self.height - 6)
+    local rows = columns == 2 and 1 or 2
+    local panelHeight = math.max(4, math.floor(availableHeight / rows))
+    local maxEntries = math.max(1, panelHeight - 3)
+
+    self.maxEntries = maxEntries
+    self.requestPanel.numLines = maxEntries
+    self.requestPanel.h = maxEntries + 3
+    self.logisticsPanel.numLines = maxEntries
+    self.logisticsPanel.h = maxEntries + 3
+
+    self.requestPanel:setAutoLayout(1, columns, 1, 4)
+    self.logisticsPanel:setAutoLayout(2, columns, 1, 4)
+end
+
 function App:init()
     if self.monitor then
         term.redirect(self.monitor)
@@ -61,7 +80,7 @@ function App:clear()
 end
 
 function App:draw()
-    self.width, self.height = self.term.getSize()
+    self:updateLayout()
     self:clear()
     self:drawHeader()
     self:drawPanels()

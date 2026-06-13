@@ -1,5 +1,6 @@
 local Panel = {}
 Panel.__index = Panel
+Panel.version = "v1.0"
 
 function Panel:new(x, y, w, numLines, title, bgColor, textColor, term)
     local self = setmetatable({}, Panel)
@@ -37,9 +38,13 @@ function Panel:layout(parentWidth)
     local spacingTotal = (s.totalPanels + 1) * s.panelSpacing
     local avail = math.max(1, parentWidth - spacingTotal)
     local w = math.floor(avail / s.totalPanels)
-    if w < 10 then w = math.max(10, parentWidth - (s.panelSpacing * 2)) end
-    local x = s.panelSpacing + (s.panelIndex - 1) * (w + s.panelSpacing)
-    local y = s.topY
+    if w < 10 then
+        w = math.max(3, parentWidth - (s.panelSpacing * 2))
+    end
+    local col = (s.panelIndex - 1) % s.totalPanels
+    local row = math.floor((s.panelIndex - 1) / s.totalPanels)
+    local x = s.panelSpacing + col * (w + s.panelSpacing)
+    local y = s.topY + row * ((self.numLines or 10) + 3 + s.panelSpacing)
     self.x = x
     self.w = w
     self.y = y

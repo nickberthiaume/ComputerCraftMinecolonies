@@ -17,6 +17,15 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.scale = self:calculateScale()
+    -- construct panels once
+    local maxEntries = 10
+    local halfWidth = math.floor((self.width - 3 * 2) / 2)
+    local leftX = 2
+    local panelY = 4
+    self.requestPanel = Panel:new(leftX, panelY, halfWidth, maxEntries, "Requested Items", colors.orange, colors.black, self.term)
+    local rightX = leftX + halfWidth + 2
+    self.logisticsPanel = Panel:new(rightX, panelY, halfWidth, maxEntries, "Logistics Requested Items", colors.green, colors.black, self.term)
+
     self.requestBtn = Button:new("Request", 0, 0, self.term)
     self.refreshBtn = Button:new("Refresh", 0, 0, self.term)
     return self
@@ -92,9 +101,16 @@ function App:drawPanels()
     local requestedLines = self:createRequestedItemLines(maxEntries)
     local logisticsLines = self:createLogisticsItemLines(maxEntries)
 
-    self:drawPanel(leftX, panelY, halfWidth, panelHeight, "Requested Items", requestedLines, colors.orange, colors.black)
-    if rightX + halfWidth - 1 <= self.width then
-        self:drawPanel(rightX, panelY, halfWidth, panelHeight, "Logistics Requested Items", logisticsLines, colors.green, colors.black)
+    -- update existing panels' geometry and content, then draw
+    if self.requestPanel then
+        self.requestPanel:setGeometry(leftX, panelY, halfWidth, maxEntries)
+        self.requestPanel:setLines(requestedLines)
+        self.requestPanel:draw()
+    end
+    if self.logisticsPanel and rightX + halfWidth - 1 <= self.width then
+        self.logisticsPanel:setGeometry(rightX, panelY, halfWidth, maxEntries)
+        self.logisticsPanel:setLines(logisticsLines)
+        self.logisticsPanel:draw()
     end
 end
 

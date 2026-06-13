@@ -14,8 +14,8 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.buttons = {
-        request = {label = "Request", x = 0, y = 0, w = 12, h = 1},
-        refresh = {label = "Refresh", x = 0, y = 0, w = 12, h = 1},
+        request = {label = "Request", x = 0, y = 0, w = 12, h = 3},
+        refresh = {label = "Refresh", x = 0, y = 0, w = 12, h = 3},
     }
     return self
 end
@@ -60,6 +60,11 @@ function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
     bgColor = bgColor or colors.lightGray
     textColor = textColor or colors.black
     
+    local paddingLeft = 2
+    local paddingTop = 1
+    local paddingRight = 2
+    local paddingBottom = 1
+    
     paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, bgColor)
     
     self.term.setBackgroundColor(bgColor)
@@ -68,19 +73,21 @@ function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
     if title and #title > 0 then
         local label = " " .. title .. " "
         local labelX = x + math.floor((w - #label) / 2)
-        self.term.setCursorPos(labelX, y)
+        self.term.setCursorPos(labelX, y + paddingTop)
         self.term.write(label)
     end
     
-    local row = y + 2
-    local maxRows = h - 3
+    local row = y + paddingTop + 1
+    local maxRows = h - paddingTop - paddingBottom - 2
+    local contentWidth = w - paddingLeft - paddingRight
+    
     for i = 1, maxRows do
-        self.term.setCursorPos(x + 2, row)
+        self.term.setCursorPos(x + paddingLeft, row)
         local line = lines[i] or ""
-        if #line > w - 4 then
-            line = line:sub(1, w - 4)
+        if #line > contentWidth then
+            line = line:sub(1, contentWidth)
         end
-        local paddedLine = line .. string.rep(" ", math.max(0, w - 4 - #line))
+        local paddedLine = line .. string.rep(" ", math.max(0, contentWidth - #line))
         self.term.write(paddedLine)
         row = row + 1
     end
@@ -142,11 +149,13 @@ function App:createLogisticsItemLines(maxEntries)
 end
 
 function App:drawButtons()
-    local buttonRow = self.height - 2
+    local buttonRow = self.height - 4
     local requestBtn = self.buttons.request
     local refreshBtn = self.buttons.refresh
-    requestBtn.w = #requestBtn.label + 4
-    refreshBtn.w = #refreshBtn.label + 4
+    requestBtn.w = #requestBtn.label + 6
+    refreshBtn.w = #refreshBtn.label + 6
+    requestBtn.h = 3
+    refreshBtn.h = 3
     requestBtn.y = buttonRow
     refreshBtn.y = buttonRow
     requestBtn.x = math.max(2, math.floor((self.width / 2) - requestBtn.w - 2))
@@ -160,19 +169,20 @@ function App:drawButton(button)
     local x = button.x
     local y = button.y
     local w = button.w
+    local h = button.h or 3
     
-    paintutils.drawFilledBox(x, y, x + w - 1, y, colors.blue)
+    paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, colors.blue)
     self.term.setBackgroundColor(colors.blue)
     self.term.setTextColor(colors.white)
     
-    local paddedLabel = " " .. button.label .. " "
-    local labelX = x + math.floor((w - #paddedLabel) / 2)
-    self.term.setCursorPos(labelX, y)
-    self.term.write(paddedLabel)
+    local labelY = y + math.floor((h - 1) / 2)
+    local labelX = x + math.floor((w - #button.label) / 2)
+    self.term.setCursorPos(labelX, labelY)
+    self.term.write(button.label)
 end
 
 function App:drawStatusBar()
-    local statusY = self.height - 1
+    local statusY = self.height
     self.term.setCursorPos(1, statusY)
     self.term.write(string.rep(" ", self.width))
     self.term.setCursorPos(2, statusY)
@@ -228,7 +238,7 @@ end
 
 function App:onRequest()
     self.message = "Request sent through logistics requester."
-    self.term.setCursorPos(1, self.height - 1)
+    self.term.setCursorPos(1, self.height)
     self.term.write(string.rep(" ", self.width))
     self:drawStatusBar()
 end
@@ -239,7 +249,7 @@ function App:onRefresh()
 end
 
 function App:isInside(x, y, button)
-    return x >= button.x and x <= button.x + button.w - 1 and y == button.y
+    return x >= button.x and x <= button.x + button.w - 1 and y >= button.y and y <= button.y + (button.h or 3) - 1
 end
 
 function App:runEventLoop()

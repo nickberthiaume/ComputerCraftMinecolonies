@@ -2,7 +2,7 @@
 -- Shared navigation helper for screen modules
 local Navigation = {}
 Navigation.__index = Navigation
-Navigation.version = "v1.0"
+Navigation.version = "v1.1"
 
 function Navigation.addBackButton(screen, term, label, returnCommand)
     screen.backBtn = require("Button"):new(label or "Back", 0, 0, term)
@@ -49,10 +49,8 @@ function Navigation.handleBackInput(screen, event, x, y)
     return false
 end
 
-function Navigation.maybeReturn(screen)
-    if screen.returnToMenu and shell and shell.run then
-        shell.run(screen.returnCommand or "main")
-    end
+function Navigation.shouldReturn(screen)
+    return screen.returnToMenu
 end
 
 return Navigation

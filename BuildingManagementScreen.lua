@@ -10,7 +10,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.3"
+App.version = "v1.4"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -51,7 +51,6 @@ function App:init()
     self:refreshData()
     self:draw()
     self:runEventLoop()
-    Navigation.maybeReturn(self)
 end
 
 function App:clear()

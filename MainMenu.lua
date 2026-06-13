@@ -5,7 +5,7 @@ local Button = require("Button")
 local MainMenu = {}
 MainMenu.__index = MainMenu
 MainMenu.name = "Main Menu"
-MainMenu.version = "v1.0"
+MainMenu.version = "v1.2"
 
 MainMenu.screenNames = {
     -- "BuildingManagementScreen",
@@ -171,11 +171,16 @@ function MainMenu:handleInput(event, side, x, y)
 end
 
 function MainMenu:run()
-    if self.monitor then
-        term.redirect(self.monitor)
+    local monitor = peripheral and peripheral.find and peripheral.find("monitor")
+    if monitor then
+        term.redirect(monitor)
     end
 
     local menu = MainMenu:new()
+    if menu.monitor and menu.term == monitor then
+        menu.width, menu.height = menu.term.getSize()
+    end
+
     menu:draw()
 
     while true do

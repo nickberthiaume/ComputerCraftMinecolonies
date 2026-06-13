@@ -9,7 +9,7 @@ local App = {}
 App.__index = App
 
 App.name = "MineColonies Request Manager"
-App.version = "v1.0"
+App.version = "v1.1"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -20,14 +20,12 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.scale = self:calculateScale()
-    -- construct panels once
-    local maxEntries = 10
-    local halfWidth = math.floor((self.width - 3 * 2) / 2)
-    local leftX = 2
-    local panelY = 4
-    self.requestPanel = Panel:new(leftX, panelY, halfWidth, maxEntries, "Builder Requests", colors.orange, colors.black, self.term)
-    local rightX = leftX + halfWidth + 2
-    self.logisticsPanel = Panel:new(rightX, panelY, halfWidth, maxEntries, "Logistics Requested", colors.green, colors.black, self.term)
+    -- construct panels once and configure auto-layout
+    self.maxEntries = 10
+    self.requestPanel = Panel:new(nil, nil, nil, self.maxEntries, "Builder Requests", colors.orange, colors.black, self.term)
+    self.logisticsPanel = Panel:new(nil, nil, nil, self.maxEntries, "Logistics Requested", colors.green, colors.black, self.term)
+    self.requestPanel:setAutoLayout(1, 2, 2, 4)
+    self.logisticsPanel:setAutoLayout(2, 2, 2, 4)
 
     self.requestBtn = Button:new("Request", 0, 0, self.term)
     self.refreshBtn = Button:new("Refresh", 0, 0, self.term)
@@ -90,28 +88,18 @@ function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
 end
 
 function App:drawPanels()
-    local panelSpacing = 2
-    local maxEntries = 10
-    local panelHeight = maxEntries + 3
-    local halfWidth = math.floor((self.width - 3 * panelSpacing) / 2)
-    if halfWidth < 20 then
-        halfWidth = self.width - 4
-    end
-    local leftX = 2
-    local rightX = leftX + halfWidth + panelSpacing
-    local panelY = 4
-
+    local maxEntries = self.maxEntries or 10
     local requestedLines = RequestedLines.build(self.requestedItems, maxEntries)
     local logisticsLines = LogisticsLines.build(self.logisticsItems, maxEntries)
 
-    -- update existing panels' geometry and content, then draw
+    -- update existing panels via their own layout logic, then draw
     if self.requestPanel then
-        self.requestPanel:setGeometry(leftX, panelY, halfWidth, maxEntries)
+        self.requestPanel:layout(self.width)
         self.requestPanel:setLines(requestedLines)
         self.requestPanel:draw()
     end
-    if self.logisticsPanel and rightX + halfWidth - 1 <= self.width then
-        self.logisticsPanel:setGeometry(rightX, panelY, halfWidth, maxEntries)
+    if self.logisticsPanel then
+        self.logisticsPanel:layout(self.width)
         self.logisticsPanel:setLines(logisticsLines)
         self.logisticsPanel:draw()
     end

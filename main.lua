@@ -14,8 +14,8 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.buttons = {
-        request = {label = "Request", x = 0, y = 0, w = 12, h = 5},
-        refresh = {label = "Refresh", x = 0, y = 0, w = 12, h = 5},
+        request = {label = "Request", x = 0, y = 0, w = 12, h = 3},
+        refresh = {label = "Refresh", x = 0, y = 0, w = 12, h = 3},
     }
     return self
 end
@@ -60,10 +60,10 @@ function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
     bgColor = bgColor or colors.lightGray
     textColor = textColor or colors.black
     
-    local paddingLeft = 3
-    local paddingTop = 2
-    local paddingRight = 3
-    local paddingBottom = 2
+    local paddingLeft = 2
+    local paddingTop = 1
+    local paddingRight = 2
+    local paddingBottom = 1
     
     paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, bgColor)
     
@@ -96,9 +96,7 @@ end
 function App:drawPanels()
     local panelSpacing = 2
     local maxEntries = 10
-    local paddingTop = 2
-    local paddingBottom = 2
-    local panelHeight = maxEntries + 4 + paddingTop + paddingBottom
+    local panelHeight = maxEntries + 3
     local halfWidth = math.floor((self.width - 3 * panelSpacing) / 2)
     if halfWidth < 20 then
         halfWidth = self.width - 4
@@ -151,13 +149,13 @@ function App:createLogisticsItemLines(maxEntries)
 end
 
 function App:drawButtons()
-    local buttonRow = self.height - 5
+    local buttonRow = self.height - 4
     local requestBtn = self.buttons.request
     local refreshBtn = self.buttons.refresh
-    requestBtn.w = #requestBtn.label + 10
-    refreshBtn.w = #refreshBtn.label + 10
-    requestBtn.h = 5
-    refreshBtn.h = 5
+    requestBtn.w = #requestBtn.label + 6
+    refreshBtn.w = #refreshBtn.label + 6
+    requestBtn.h = 3
+    refreshBtn.h = 3
     requestBtn.y = buttonRow
     refreshBtn.y = buttonRow
     requestBtn.x = math.max(2, math.floor((self.width / 2) - requestBtn.w - 2))
@@ -171,7 +169,7 @@ function App:drawButton(button)
     local x = button.x
     local y = button.y
     local w = button.w
-    local h = button.h or 5
+    local h = button.h or 3
     
     paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, colors.blue)
     self.term.setBackgroundColor(colors.blue)

@@ -2,6 +2,8 @@
 local Button = require("Button")
 local Panel = require("Panel")
 local ColonyData = require("ColonyData")
+local RequestedLines = require("RequestedLines")
+local LogisticsLines = require("LogisticsLines")
 
 local App = {}
 App.__index = App
@@ -99,8 +101,8 @@ function App:drawPanels()
     local rightX = leftX + halfWidth + panelSpacing
     local panelY = 4
 
-    local requestedLines = self:createRequestedItemLines(maxEntries)
-    local logisticsLines = self:createLogisticsItemLines(maxEntries)
+    local requestedLines = RequestedLines.build(self.requestedItems, maxEntries)
+    local logisticsLines = LogisticsLines.build(self.logisticsItems, maxEntries)
 
     -- update existing panels' geometry and content, then draw
     if self.requestPanel then
@@ -113,40 +115,6 @@ function App:drawPanels()
         self.logisticsPanel:setLines(logisticsLines)
         self.logisticsPanel:draw()
     end
-end
-
-function App:createRequestedItemLines(maxEntries)
-    maxEntries = maxEntries or 10
-    local lines = {}
-    if #self.requestedItems == 0 then
-        table.insert(lines, "No requested items found.")
-    else
-        for _, item in ipairs(self.requestedItems) do
-            if #lines >= maxEntries then break end
-            table.insert(lines, string.format("%s x%d", item.name, item.count or 0))
-        end
-    end
-    while #lines < maxEntries do
-        table.insert(lines, "")
-    end
-    return lines
-end
-
-function App:createLogisticsItemLines(maxEntries)
-    maxEntries = maxEntries or 10
-    local lines = {}
-    if #self.logisticsItems == 0 then
-        table.insert(lines, "No logistics requests found.")
-    else
-        for _, item in ipairs(self.logisticsItems) do
-            if #lines >= maxEntries then break end
-            table.insert(lines, string.format("%s x%d [%s]", item.name, item.count or 0, item.status or "Pending"))
-        end
-    end
-    while #lines < maxEntries do
-        table.insert(lines, "")
-    end
-    return lines
 end
 
 function App:drawButtons()

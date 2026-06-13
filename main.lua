@@ -1,6 +1,7 @@
 -- ComputerCraft MineColonies UI
 local Button = require("Button")
 local Panel = require("Panel")
+local ColonyData = require("ColonyData")
 
 local App = {}
 App.__index = App
@@ -176,41 +177,16 @@ function App:getActiveLogisticsRequests()
 end
 
 function App:refreshData()
-    local items = self:getColonyRequests()
+    local raw = self:getColonyRequests()
+    local items, msg = ColonyData.parseRequested(raw)
+    self.requestedItems = items or {}
+    self.message = msg or ""
 
-    if type(items) == "table" and #items > 0 then
-        self.requestedItems = {}
-        for _, entry in ipairs(items) do
-            if entry.name then
-                table.insert(self.requestedItems, {name = entry.name, count = entry.count or 0})
-            end
-        end
-        self.message = "Loaded requested items from colony API."
-    else
-        self.requestedItems = {
-            {name = "Oak Planks", count = 128},
-            {name = "Cobblestone", count = 64},
-            {name = "Glass Pane", count = 32},
-        }
-        self.message = "Using sample requested items."
-    end
-
-    local logistics = self:getActiveLogisticsRequests()
-
-    if type(logistics) == "table" and #logistics > 0 then
-        self.logisticsItems = {}
-        for _, entry in ipairs(logistics) do
-            if entry.name then
-                table.insert(self.logisticsItems, {name = entry.name, count = entry.count or 0, status = entry.status or "Pending"})
-            end
-        end
-        self.message = "Loaded logistics requester items from colony API."
-    else
-        self.logisticsItems = {
-            {name = "Oak Planks", count = 128, status = "Requested"},
-            {name = "Cobblestone", count = 64, status = "Requested"},
-        }
-        self.message = self.message .. " Refresh to update."
+    local rawLog = self:getActiveLogisticsRequests()
+    local logistics, msg2 = ColonyData.parseLogistics(rawLog)
+    self.logisticsItems = logistics or {}
+    if msg2 and msg2 ~= "" then
+        self.message = self.message .. " " .. msg2
     end
 end
 

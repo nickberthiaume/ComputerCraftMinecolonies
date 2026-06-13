@@ -4,12 +4,13 @@ local Panel = require("Panel")
 local ColonyData = require("ColonyData")
 local RequestedLines = require("RequestedLines")
 local LogisticsLines = require("LogisticsLines")
+local Navigation = require("Navigation")
 
 local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.2"
+App.version = "v1.3"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -29,6 +30,7 @@ function App:new()
 
     self.requestBtn = Button:new("Request", 0, 0, self.term)
     self.refreshBtn = Button:new("Refresh", 0, 0, self.term)
+    Navigation.addBackButton(self, self.term, "Main Menu", "main")
     return self
 end
 
@@ -49,6 +51,7 @@ function App:init()
     self:refreshData()
     self:draw()
     self:runEventLoop()
+    Navigation.maybeReturn(self)
 end
 
 function App:clear()
@@ -107,13 +110,18 @@ end
 
 function App:drawButtons()
     local buttonRow = self.height - 3
-    self.requestBtn.x = math.max(2, math.floor((self.width / 2) - self.requestBtn.w - 2))
+    local spacing = 2
+
+    self.requestBtn.x = 2
     self.requestBtn.y = buttonRow
-    self.refreshBtn.x = math.min(self.width - self.refreshBtn.w - 1, math.floor((self.width / 2) + 2))
+    self.refreshBtn.x = self.requestBtn.x + self.requestBtn.w + spacing
     self.refreshBtn.y = buttonRow
+
+    Navigation.layoutBackButton(self, buttonRow, self.width, {self.requestBtn, self.refreshBtn}, spacing)
 
     self.requestBtn:draw()
     self.refreshBtn:draw()
+    Navigation.drawBackButton(self)
 end
 
 function App:drawStatusBar()
@@ -158,8 +166,8 @@ function App:onRefresh()
     self:draw()
 end
 
-
 function App:runEventLoop()
+    self.returnToMenu = false
     while true do
         local event, side, x, y = os.pullEvent()
         if event == "monitor_touch" then
@@ -167,16 +175,24 @@ function App:runEventLoop()
                 self:onRequest()
             elseif self.refreshBtn:isInside(x, y) then
                 self:onRefresh()
+            elseif Navigation.handleBackInput(self, event, x, y) then
+                break
             end
         elseif event == "mouse_click" then
             if self.requestBtn:isInside(x, y) then
                 self:onRequest()
             elseif self.refreshBtn:isInside(x, y) then
                 self:onRefresh()
+            elseif Navigation.handleBackInput(self, event, x, y) then
+                break
             end
         elseif event == "term_resize" then
             self.width, self.height = self.term.getSize()
             self:draw()
+        end
+
+        if self.returnToMenu then
+            break
         end
     end
 end

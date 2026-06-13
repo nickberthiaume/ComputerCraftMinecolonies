@@ -56,7 +56,10 @@ function App:drawHeader()
     self.term.write(string.rep("=", self.width))
 end
 
-function App:drawColoredBox(x, y, w, h, bgColor, textColor, title)
+function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
+    bgColor = bgColor or colors.lightGray
+    textColor = textColor or colors.black
+    
     paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, bgColor)
     
     self.term.setBackgroundColor(bgColor)
@@ -68,36 +71,25 @@ function App:drawColoredBox(x, y, w, h, bgColor, textColor, title)
         self.term.setCursorPos(labelX, y)
         self.term.write(label)
     end
-end
-
-function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
-    bgColor = bgColor or colors.lightGray
-    textColor = textColor or colors.black
-    
-    self:drawColoredBox(x, y, w, h, bgColor, textColor, title)
-    
-    self.term.setBackgroundColor(bgColor)
-    self.term.setTextColor(textColor)
     
     local row = y + 2
-    for i = 1, #lines do
-        if row < y + h - 1 then
-            self.term.setCursorPos(x + 2, row)
-            local line = lines[i]
-            if #line > w - 4 then
-                line = line:sub(1, w - 4)
-            end
-            self.term.write(line)
-            row = row + 1
-        else
-            break
+    local maxRows = h - 3
+    for i = 1, maxRows do
+        self.term.setCursorPos(x + 2, row)
+        local line = lines[i] or ""
+        if #line > w - 4 then
+            line = line:sub(1, w - 4)
         end
+        local paddedLine = line .. string.rep(" ", math.max(0, w - 4 - #line))
+        self.term.write(paddedLine)
+        row = row + 1
     end
 end
 
 function App:drawPanels()
     local panelSpacing = 2
-    local panelHeight = math.max(8, self.height - 8)
+    local maxEntries = 10
+    local panelHeight = maxEntries + 3
     local halfWidth = math.floor((self.width - 3 * panelSpacing) / 2)
     if halfWidth < 20 then
         halfWidth = self.width - 4
@@ -106,8 +98,8 @@ function App:drawPanels()
     local rightX = leftX + halfWidth + panelSpacing
     local panelY = 4
 
-    local requestedLines = self:createRequestedItemLines()
-    local logisticsLines = self:createLogisticsItemLines()
+    local requestedLines = self:createRequestedItemLines(maxEntries)
+    local logisticsLines = self:createLogisticsItemLines(maxEntries)
 
     self:drawPanel(leftX, panelY, halfWidth, panelHeight, "Requested Items", requestedLines, colors.orange, colors.black)
     if rightX + halfWidth - 1 <= self.width then
@@ -115,26 +107,36 @@ function App:drawPanels()
     end
 end
 
-function App:createRequestedItemLines()
+function App:createRequestedItemLines(maxEntries)
+    maxEntries = maxEntries or 10
     local lines = {}
     if #self.requestedItems == 0 then
         table.insert(lines, "No requested items found.")
     else
         for _, item in ipairs(self.requestedItems) do
+            if #lines >= maxEntries then break end
             table.insert(lines, string.format("%s x%d", item.name, item.count or 0))
         end
+    end
+    while #lines < maxEntries do
+        table.insert(lines, "")
     end
     return lines
 end
 
-function App:createLogisticsItemLines()
+function App:createLogisticsItemLines(maxEntries)
+    maxEntries = maxEntries or 10
     local lines = {}
     if #self.logisticsItems == 0 then
         table.insert(lines, "No logistics requests found.")
     else
         for _, item in ipairs(self.logisticsItems) do
+            if #lines >= maxEntries then break end
             table.insert(lines, string.format("%s x%d [%s]", item.name, item.count or 0, item.status or "Pending"))
         end
+    end
+    while #lines < maxEntries do
+        table.insert(lines, "")
     end
     return lines
 end
@@ -163,9 +165,10 @@ function App:drawButton(button)
     self.term.setBackgroundColor(colors.blue)
     self.term.setTextColor(colors.white)
     
-    local labelX = x + math.floor((w - #button.label) / 2)
+    local paddedLabel = " " .. button.label .. " "
+    local labelX = x + math.floor((w - #paddedLabel) / 2)
     self.term.setCursorPos(labelX, y)
-    self.term.write(button.label)
+    self.term.write(paddedLabel)
 end
 
 function App:drawStatusBar()

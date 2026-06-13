@@ -39,6 +39,8 @@ function App:draw()
     self:drawHeader()
     self:drawPanels()
     self:drawButtons()
+    self.term.setBackgroundColor(colors.black)
+    self.term.setTextColor(colors.white)
     self:drawStatusBar()
 end
 
@@ -54,32 +56,38 @@ function App:drawHeader()
     self.term.write(string.rep("=", self.width))
 end
 
-function App:drawBox(x, y, w, h, title)
-    self.term.setCursorPos(x, y)
-    self.term.write("+" .. string.rep("-", w - 2) .. "+")
-    for row = y + 1, y + h - 2 do
-        self.term.setCursorPos(x, row)
-        self.term.write("|" .. string.rep(" ", w - 2) .. "|")
-    end
-    self.term.setCursorPos(x, y + h - 1)
-    self.term.write("+" .. string.rep("-", w - 2) .. "+")
-    if title and #title > 0 and w > 4 then
+function App:drawColoredBox(x, y, w, h, bgColor, textColor, title)
+    paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, bgColor)
+    
+    self.term.setBackgroundColor(bgColor)
+    self.term.setTextColor(textColor)
+    
+    if title and #title > 0 then
         local label = " " .. title .. " "
-        local labelX = x + 2
-        if labelX + #label <= x + w - 1 then
-            self.term.setCursorPos(labelX, y)
-            self.term.write(label)
-        end
+        local labelX = x + math.floor((w - #label) / 2)
+        self.term.setCursorPos(labelX, y)
+        self.term.write(label)
     end
 end
 
-function App:drawPanel(x, y, w, h, title, lines)
-    self:drawBox(x, y, w, h, title)
-    local row = y + 1
+function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
+    bgColor = bgColor or colors.lightGray
+    textColor = textColor or colors.black
+    
+    self:drawColoredBox(x, y, w, h, bgColor, textColor, title)
+    
+    self.term.setBackgroundColor(bgColor)
+    self.term.setTextColor(textColor)
+    
+    local row = y + 2
     for i = 1, #lines do
         if row < y + h - 1 then
             self.term.setCursorPos(x + 2, row)
-            self.term.write(lines[i])
+            local line = lines[i]
+            if #line > w - 4 then
+                line = line:sub(1, w - 4)
+            end
+            self.term.write(line)
             row = row + 1
         else
             break
@@ -101,9 +109,9 @@ function App:drawPanels()
     local requestedLines = self:createRequestedItemLines()
     local logisticsLines = self:createLogisticsItemLines()
 
-    self:drawPanel(leftX, panelY, halfWidth, panelHeight, "Requested Items", requestedLines)
+    self:drawPanel(leftX, panelY, halfWidth, panelHeight, "Requested Items", requestedLines, colors.orange, colors.black)
     if rightX + halfWidth - 1 <= self.width then
-        self:drawPanel(rightX, panelY, halfWidth, panelHeight, "Logistics Requested Items", logisticsLines)
+        self:drawPanel(rightX, panelY, halfWidth, panelHeight, "Logistics Requested Items", logisticsLines, colors.green, colors.black)
     end
 end
 
@@ -150,9 +158,14 @@ function App:drawButton(button)
     local x = button.x
     local y = button.y
     local w = button.w
-    local label = string.format("[ %s ]", button.label)
-    self.term.setCursorPos(x, y)
-    self.term.write(label .. string.rep(" ", math.max(0, w - #label)))
+    
+    paintutils.drawFilledBox(x, y, x + w - 1, y, colors.blue)
+    self.term.setBackgroundColor(colors.blue)
+    self.term.setTextColor(colors.white)
+    
+    local labelX = x + math.floor((w - #button.label) / 2)
+    self.term.setCursorPos(labelX, y)
+    self.term.write(button.label)
 end
 
 function App:drawStatusBar()

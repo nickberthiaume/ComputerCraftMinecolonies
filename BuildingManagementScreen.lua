@@ -10,7 +10,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.6"
+App.version = "v1.7"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -59,12 +59,14 @@ function App:updateLayout()
     local availableHeight = math.max(1, buttonRow - topY)
     local panelHeight = math.max(2, math.floor((availableHeight - (rows - 1)) / rows))
     local maxEntries = math.max(0, panelHeight - 3)
+    local cappedEntries = math.min(10, maxEntries)
+    local cappedPanelHeight = math.min(panelHeight, 10 + 3)
 
-    self.maxEntries = maxEntries
-    self.requestPanel.numLines = maxEntries
-    self.requestPanel.h = panelHeight
-    self.logisticsPanel.numLines = maxEntries
-    self.logisticsPanel.h = panelHeight
+    self.maxEntries = cappedEntries
+    self.requestPanel.numLines = cappedEntries
+    self.requestPanel.h = cappedPanelHeight
+    self.logisticsPanel.numLines = cappedEntries
+    self.logisticsPanel.h = cappedPanelHeight
 
     self.requestPanel:setAutoLayout(1, columns, 1, topY)
     self.logisticsPanel:setAutoLayout(2, columns, 1, topY)

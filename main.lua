@@ -13,11 +13,22 @@ function App:new()
     self.requestedItems = {}
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
+    self.scale = self:calculateScale()
     self.buttons = {
         request = {label = "Request", x = 0, y = 0, w = 12, h = 3},
         refresh = {label = "Refresh", x = 0, y = 0, w = 12, h = 3},
     }
     return self
+end
+
+function App:calculateScale()
+    if self.width >= 100 or self.height >= 50 then
+        return 1.5
+    elseif self.width >= 80 or self.height >= 30 then
+        return 1.2
+    else
+        return 1.0
+    end
 end
 
 function App:init()
@@ -63,10 +74,10 @@ function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
     bgColor = bgColor or colors.lightGray
     textColor = textColor or colors.black
     
-    local paddingLeft = 2
-    local paddingTop = 1
-    local paddingRight = 2
-    local paddingBottom = 1
+    local paddingLeft = 1
+    local paddingTop = 0
+    local paddingRight = 1
+    local paddingBottom = 0
     
     paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, bgColor)
     
@@ -152,13 +163,13 @@ function App:createLogisticsItemLines(maxEntries)
 end
 
 function App:drawButtons()
-    local buttonRow = self.height - 4
+    local buttonRow = self.height - 3
     local requestBtn = self.buttons.request
     local refreshBtn = self.buttons.refresh
-    requestBtn.w = #requestBtn.label + 6
-    refreshBtn.w = #refreshBtn.label + 6
-    requestBtn.h = 3
-    refreshBtn.h = 3
+    requestBtn.w = #requestBtn.label + 4
+    refreshBtn.w = #refreshBtn.label + 4
+    requestBtn.h = 2
+    refreshBtn.h = 2
     requestBtn.y = buttonRow
     refreshBtn.y = buttonRow
     requestBtn.x = math.max(2, math.floor((self.width / 2) - requestBtn.w - 2))
@@ -172,7 +183,7 @@ function App:drawButton(button)
     local x = button.x
     local y = button.y
     local w = button.w
-    local h = button.h or 3
+    local h = button.h or 2
     
     paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, colors.blue)
     self.term.setBackgroundColor(colors.blue)
@@ -252,7 +263,7 @@ function App:onRefresh()
 end
 
 function App:isInside(x, y, button)
-    return x >= button.x and x <= button.x + button.w - 1 and y >= button.y and y <= button.y + (button.h or 3) - 1
+    return x >= button.x and x <= button.x + button.w - 1 and y >= button.y and y <= button.y + (button.h or 2) - 1
 end
 
 function App:runEventLoop()

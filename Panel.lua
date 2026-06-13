@@ -1,6 +1,6 @@
 local Panel = {}
 Panel.__index = Panel
-Panel.version = "v1.0"
+Panel.version = "v1.1"
 
 function Panel:new(x, y, w, numLines, title, bgColor, textColor, term)
     local self = setmetatable({}, Panel)
@@ -92,7 +92,8 @@ function Panel:draw()
     end
 
     local row = self.y + paddingTop + 1
-    local maxRows = self.numLines or (self.h - paddingTop - paddingBottom - 2)
+    local availableRows = self.h - paddingTop - paddingBottom - 2
+    local maxRows = math.max(0, math.min(self.numLines or availableRows, availableRows))
     local contentWidth = self.w - paddingLeft - paddingRight
 
     for i = 1, maxRows do

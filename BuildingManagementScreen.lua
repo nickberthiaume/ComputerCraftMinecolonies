@@ -10,7 +10,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.5"
+App.version = "v1.6"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -47,20 +47,27 @@ end
 function App:updateLayout()
     self.width, self.height = self.term.getSize()
     self.scale = self:calculateScale()
+
+    local headerRows = self.height <= 6 and 1 or 2
+    self.headerRows = headerRows
+    local topY = headerRows + 1
+    local buttonRow = math.max(topY + 1, self.height - 1)
+    self.buttonRow = buttonRow
+
     local columns = (self.width >= 32) and 2 or 1
-    local availableHeight = math.max(1, self.height - 6)
     local rows = columns == 2 and 1 or 2
-    local panelHeight = math.max(4, math.floor(availableHeight / rows))
-    local maxEntries = math.max(1, panelHeight - 3)
+    local availableHeight = math.max(1, buttonRow - topY)
+    local panelHeight = math.max(2, math.floor((availableHeight - (rows - 1)) / rows))
+    local maxEntries = math.max(0, panelHeight - 3)
 
     self.maxEntries = maxEntries
     self.requestPanel.numLines = maxEntries
-    self.requestPanel.h = maxEntries + 3
+    self.requestPanel.h = panelHeight
     self.logisticsPanel.numLines = maxEntries
-    self.logisticsPanel.h = maxEntries + 3
+    self.logisticsPanel.h = panelHeight
 
-    self.requestPanel:setAutoLayout(1, columns, 1, 4)
-    self.logisticsPanel:setAutoLayout(2, columns, 1, 4)
+    self.requestPanel:setAutoLayout(1, columns, 1, topY)
+    self.logisticsPanel:setAutoLayout(2, columns, 1, topY)
 end
 
 function App:init()
@@ -92,14 +99,16 @@ end
 
 function App:drawHeader()
     local title = string.format("%s %s", self.name, self.version)
-    local titleRow = 1
-    self.term.setCursorPos(1, titleRow)
+    self.term.setCursorPos(1, 1)
     self.term.write(string.rep(" ", self.width))
     local titleX = math.max(1, math.floor((self.width - #title) / 2) + 1)
-    self.term.setCursorPos(titleX, titleRow)
+    self.term.setCursorPos(titleX, 1)
     self.term.write(title)
-    self.term.setCursorPos(1, 2)
-    self.term.write(string.rep("=", self.width))
+
+    if self.headerRows and self.headerRows > 1 then
+        self.term.setCursorPos(1, 2)
+        self.term.write(string.rep("=", self.width))
+    end
 end
 
 function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
@@ -127,7 +136,7 @@ function App:drawPanels()
 end
 
 function App:drawButtons()
-    local buttonRow = self.height - 3
+    local buttonRow = self.buttonRow or math.max(3, self.height - 1)
     local spacing = 2
 
     self.requestBtn.x = 2

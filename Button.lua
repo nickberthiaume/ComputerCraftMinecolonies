@@ -22,7 +22,7 @@ function Button:draw()
     self.term.setBackgroundColor(colors.blue)
     self.term.setTextColor(colors.white)
     
-    local labelY = y + math.floor((h - 1) / 2)
+    local labelY = y + math.floor(h / 2)
     local labelX = x + math.floor((w - #self.label) / 2)
     self.term.setCursorPos(labelX, labelY)
     self.term.write(self.label)

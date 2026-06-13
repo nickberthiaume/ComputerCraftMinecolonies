@@ -1,4 +1,7 @@
 -- ComputerCraft MineColonies UI
+local Button = require("Button")
+local Panel = require("Panel")
+
 local App = {}
 App.__index = App
 
@@ -14,10 +17,8 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.scale = self:calculateScale()
-    self.buttons = {
-        request = {label = "Request", x = 0, y = 0, w = 12, h = 3},
-        refresh = {label = "Refresh", x = 0, y = 0, w = 12, h = 3},
-    }
+    self.requestBtn = Button:new("Request", 0, 0, self.term)
+    self.refreshBtn = Button:new("Refresh", 0, 0, self.term)
     return self
 end
 
@@ -71,40 +72,9 @@ function App:drawHeader()
 end
 
 function App:drawPanel(x, y, w, h, title, lines, bgColor, textColor)
-    bgColor = bgColor or colors.lightGray
-    textColor = textColor or colors.black
-    
-    local paddingLeft = 1
-    local paddingTop = 0
-    local paddingRight = 1
-    local paddingBottom = 0
-    
-    paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, bgColor)
-    
-    self.term.setBackgroundColor(bgColor)
-    self.term.setTextColor(textColor)
-    
-    if title and #title > 0 then
-        local label = " " .. title .. " "
-        local labelX = x + math.floor((w - #label) / 2)
-        self.term.setCursorPos(labelX, y + paddingTop)
-        self.term.write(label)
-    end
-    
-    local row = y + paddingTop + 1
-    local maxRows = h - paddingTop - paddingBottom - 2
-    local contentWidth = w - paddingLeft - paddingRight
-    
-    for i = 1, maxRows do
-        self.term.setCursorPos(x + paddingLeft, row)
-        local line = lines[i] or ""
-        if #line > contentWidth then
-            line = line:sub(1, contentWidth)
-        end
-        local paddedLine = line .. string.rep(" ", math.max(0, contentWidth - #line))
-        self.term.write(paddedLine)
-        row = row + 1
-    end
+    local panel = Panel:new(x, y, w, h, title, bgColor, textColor, self.term)
+    panel:setLines(lines)
+    panel:draw()
 end
 
 function App:drawPanels()
@@ -164,35 +134,13 @@ end
 
 function App:drawButtons()
     local buttonRow = self.height - 3
-    local requestBtn = self.buttons.request
-    local refreshBtn = self.buttons.refresh
-    requestBtn.w = #requestBtn.label + 4
-    refreshBtn.w = #refreshBtn.label + 4
-    requestBtn.h = 2
-    refreshBtn.h = 2
-    requestBtn.y = buttonRow
-    refreshBtn.y = buttonRow
-    requestBtn.x = math.max(2, math.floor((self.width / 2) - requestBtn.w - 2))
-    refreshBtn.x = math.min(self.width - refreshBtn.w - 1, math.floor((self.width / 2) + 2))
+    self.requestBtn.x = math.max(2, math.floor((self.width / 2) - self.requestBtn.w - 2))
+    self.requestBtn.y = buttonRow
+    self.refreshBtn.x = math.min(self.width - self.refreshBtn.w - 1, math.floor((self.width / 2) + 2))
+    self.refreshBtn.y = buttonRow
 
-    self:drawButton(requestBtn)
-    self:drawButton(refreshBtn)
-end
-
-function App:drawButton(button)
-    local x = button.x
-    local y = button.y
-    local w = button.w
-    local h = button.h or 2
-    
-    paintutils.drawFilledBox(x, y, x + w - 1, y + h - 1, colors.blue)
-    self.term.setBackgroundColor(colors.blue)
-    self.term.setTextColor(colors.white)
-    
-    local labelY = y + math.floor((h - 1) / 2)
-    local labelX = x + math.floor((w - #button.label) / 2)
-    self.term.setCursorPos(labelX, labelY)
-    self.term.write(button.label)
+    self.requestBtn:draw()
+    self.refreshBtn:draw()
 end
 
 function App:drawStatusBar()
@@ -262,23 +210,20 @@ function App:onRefresh()
     self:draw()
 end
 
-function App:isInside(x, y, button)
-    return x >= button.x and x <= button.x + button.w - 1 and y >= button.y and y <= button.y + (button.h or 2) - 1
-end
 
 function App:runEventLoop()
     while true do
         local event, side, x, y = os.pullEvent()
         if event == "monitor_touch" then
-            if self:isInside(x, y, self.buttons.request) then
+            if self.requestBtn:isInside(x, y) then
                 self:onRequest()
-            elseif self:isInside(x, y, self.buttons.refresh) then
+            elseif self.refreshBtn:isInside(x, y) then
                 self:onRefresh()
             end
         elseif event == "mouse_click" then
-            if self:isInside(x, y, self.buttons.request) then
+            if self.requestBtn:isInside(x, y) then
                 self:onRequest()
-            elseif self:isInside(x, y, self.buttons.refresh) then
+            elseif self.refreshBtn:isInside(x, y) then
                 self:onRefresh()
             end
         elseif event == "term_resize" then

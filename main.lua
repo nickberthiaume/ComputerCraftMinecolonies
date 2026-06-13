@@ -25,9 +25,9 @@ function App:new()
     local halfWidth = math.floor((self.width - 3 * 2) / 2)
     local leftX = 2
     local panelY = 4
-    self.requestPanel = Panel:new(leftX, panelY, halfWidth, maxEntries, "Requested Items", colors.orange, colors.black, self.term)
+    self.requestPanel = Panel:new(leftX, panelY, halfWidth, maxEntries, "Builder Requests", colors.orange, colors.black, self.term)
     local rightX = leftX + halfWidth + 2
-    self.logisticsPanel = Panel:new(rightX, panelY, halfWidth, maxEntries, "Logistics Requested Items", colors.green, colors.black, self.term)
+    self.logisticsPanel = Panel:new(rightX, panelY, halfWidth, maxEntries, "Logistics Requested", colors.green, colors.black, self.term)
 
     self.requestBtn = Button:new("Request", 0, 0, self.term)
     self.refreshBtn = Button:new("Refresh", 0, 0, self.term)

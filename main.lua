@@ -21,6 +21,9 @@ function App:new()
 end
 
 function App:init()
+    if self.monitor then
+        term.redirect(self.monitor)
+    end
     self:refreshData()
     self:draw()
     self:runEventLoop()

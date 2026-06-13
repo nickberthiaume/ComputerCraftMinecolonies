@@ -10,7 +10,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.7"
+App.version = "v1.8"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -51,7 +51,8 @@ function App:updateLayout()
     local headerRows = self.height <= 6 and 1 or 2
     self.headerRows = headerRows
     local topY = headerRows + 1
-    local buttonRow = math.max(topY + 1, self.height - 1)
+    -- Reserve the last row for the status bar, so 2-row buttons do not overlap it.
+    local buttonRow = math.max(topY + 1, self.height - 2)
     self.buttonRow = buttonRow
 
     local columns = (self.width >= 32) and 2 or 1

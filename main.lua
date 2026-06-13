@@ -40,7 +40,8 @@ function App:refreshScreenList()
         local dir = self:getWorkingDirectory()
         for _, entry in ipairs(fs.list(dir)) do
             if entry:match("Screen%.lua$") then
-                table.insert(self.screens, entry:gsub("%.lua$", ""))
+                local moduleName = entry:gsub("%.lua$", "")
+                table.insert(self.screens, moduleName)
             end
         end
         table.sort(self.screens)

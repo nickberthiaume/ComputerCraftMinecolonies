@@ -12,7 +12,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.12"
+App.version = "v1.13"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -152,8 +152,21 @@ function App:drawButtons()
     self.refreshBtn.y = buttonRow
 
     if self.backBtn then
-        self.backBtn.x = math.max(2, self.width - self.backBtn.w - 2)
-        self.backBtn.y = buttonRow
+        local backX = math.max(2, self.width - self.backBtn.w - 2)
+        local backY = buttonRow
+
+        if backX <= self.refreshBtn.x + self.refreshBtn.w then
+            local topY = (self.headerRows and self.headerRows + 1) or 2
+            local altY = buttonRow - self.backBtn.h - 1
+            if altY >= topY then
+                backY = altY
+            else
+                backX = 2
+            end
+        end
+
+        self.backBtn.x = backX
+        self.backBtn.y = backY
     end
 
     self.requestBtn:draw()

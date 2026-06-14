@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v1.1"
+LogisticsRequester.version = "v1.2"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -40,14 +40,46 @@ function LogisticsRequester:setDestination(address)
         return false, "No RedstoneRequester peripheral available"
     end
 
+    local function tryCall(fn, ...)
+        if type(fn) ~= "function" then
+            return nil, "not a function", false
+        end
+        local ok, a, b = pcall(fn, ...)
+        if not ok then
+            return nil, a, false
+        end
+        return a, b, true
+    end
+
     if self.requester.setDestination then
-        return self.requester:setDestination(self.address)
+        local ok, err, called = tryCall(self.requester.setDestination, self.address)
+        if called then
+            return ok, err
+        end
+        ok, err, called = tryCall(self.requester.setDestination, self.requester, self.address)
+        if called then
+            return ok, err
+        end
     end
     if self.requester.setTarget then
-        return self.requester:setTarget(self.address)
+        local ok, err, called = tryCall(self.requester.setTarget, self.address)
+        if called then
+            return ok, err
+        end
+        ok, err, called = tryCall(self.requester.setTarget, self.requester, self.address)
+        if called then
+            return ok, err
+        end
     end
     if self.requester.setAddress then
-        return self.requester:setAddress(self.address)
+        local ok, err, called = tryCall(self.requester.setAddress, self.address)
+        if called then
+            return ok, err
+        end
+        ok, err, called = tryCall(self.requester.setAddress, self.requester, self.address)
+        if called then
+            return ok, err
+        end
     end
 
     self.requester.address = self.address

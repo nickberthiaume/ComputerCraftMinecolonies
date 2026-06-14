@@ -11,7 +11,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.9"
+App.version = "v1.10"
 
 function App:new()
     local self = setmetatable({}, App)

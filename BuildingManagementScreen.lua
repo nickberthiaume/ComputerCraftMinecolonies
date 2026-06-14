@@ -2,6 +2,7 @@
 local Button = require("Button")
 local Panel = require("Panel")
 local ColonyData = require("ColonyData")
+local ColonyRequestManager = require("ColonyRequestManager")
 local RequestedLines = require("RequestedLines")
 local LogisticsLines = require("LogisticsLines")
 local Navigation = require("Navigation")
@@ -10,7 +11,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.8"
+App.version = "v1.9"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -20,6 +21,7 @@ function App:new()
     self.requestedItems = {}
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
+    self.requestManager = ColonyRequestManager:new()
     self.scale = self:calculateScale()
     -- construct panels once and configure auto-layout
     self.maxEntries = 10
@@ -163,7 +165,7 @@ function App:drawStatusBar()
 end
 
 function App:getColonyRequests()
-    return {}
+    return self.requestManager:getBuilderRequests()
 end
 
 function App:getActiveLogisticsRequests()

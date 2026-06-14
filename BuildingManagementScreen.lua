@@ -12,7 +12,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.15"
+App.version = "v1.16"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -166,6 +166,17 @@ function App:drawStatusBar()
     self.term.write(self.message)
 end
 
+function App:logClickEvent(event, x, y)
+    local logPath = "building_management_clicks.log"
+    local handle, err = fs.open(logPath, "a")
+    if not handle then
+        return false, err
+    end
+    handle.writeLine(string.format("%s @ %d,%d %s", event, x or 0, y or 0, os.date("%Y-%m-%d %H:%M:%S")))
+    handle.close()
+    return true
+end
+
 function App:getColonyRequests()
     return self.requestManager:getBuilderRequests()
 end
@@ -221,6 +232,7 @@ function App:runEventLoop()
     while true do
         local event, side, x, y = os.pullEvent()
         if event == "monitor_touch" then
+            self:logClickEvent("monitor_touch", x, y)
             if self.requestBtn:isInside(x, y) then
                 self:onRequest()
             elseif self.refreshBtn:isInside(x, y) then
@@ -229,6 +241,7 @@ function App:runEventLoop()
                 break
             end
         elseif event == "mouse_click" then
+            self:logClickEvent("mouse_click", x, y)
             if self.requestBtn:isInside(x, y) then
                 self:onRequest()
             elseif self.refreshBtn:isInside(x, y) then

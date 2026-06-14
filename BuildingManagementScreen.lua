@@ -12,7 +12,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.16"
+App.version = "v1.17"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -167,6 +167,17 @@ function App:drawStatusBar()
     self.term.write(self.message)
 end
 
+function App:logDebug(message)
+    local logPath = "building_management_clicks.log"
+    local handle, err = fs.open(logPath, "a")
+    if not handle then
+        return false, err
+    end
+    handle.writeLine(string.format("%s %s", os.date("%Y-%m-%d %H:%M:%S"), message))
+    handle.close()
+    return true
+end
+
 function App:logClickEvent(event, x, y)
     local logPath = "building_management_clicks.log"
     local handle, err = fs.open(logPath, "a")
@@ -230,19 +241,29 @@ function App:refreshData()
 end
 
 function App:onRequest()
+    self:logDebug("onRequest called")
     if not self.logisticsRequester then
+        self:logDebug("onRequest: no logisticsRequester")
         self.message = "No logistics requester module available."
         self:draw()
         return
     end
 
+    if not self.requestedItems then
+        self:logDebug("onRequest: requestedItems nil")
+    elseif #self.requestedItems == 0 then
+        self:logDebug("onRequest: requestedItems empty")
+    end
+
     if not self.requestedItems or #self.requestedItems == 0 then
+        self:logDebug("onRequest: abort, no items")
         self.message = "No builder request items available to send."
         self:draw()
         return
     end
 
     local ok, err = self.logisticsRequester:requestItems(self.requestedItems)
+    self:logDebug(string.format("onRequest: requestItems returned ok=%s err=%s", tostring(ok), tostring(err)))
     if ok then
         self.message = "Submitted item request to the logistics network."
     else

@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v1.2"
+LogisticsRequester.version = "v1.3"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -51,6 +51,16 @@ function LogisticsRequester:setDestination(address)
         return a, b, true
     end
 
+    if self.requester.setAddress then
+        local ok, err, called = tryCall(self.requester.setAddress, self.address)
+        if called then
+            return ok, err
+        end
+        ok, err, called = tryCall(self.requester.setAddress, self.requester, self.address)
+        if called then
+            return ok, err
+        end
+    end
     if self.requester.setDestination then
         local ok, err, called = tryCall(self.requester.setDestination, self.address)
         if called then
@@ -67,16 +77,6 @@ function LogisticsRequester:setDestination(address)
             return ok, err
         end
         ok, err, called = tryCall(self.requester.setTarget, self.requester, self.address)
-        if called then
-            return ok, err
-        end
-    end
-    if self.requester.setAddress then
-        local ok, err, called = tryCall(self.requester.setAddress, self.address)
-        if called then
-            return ok, err
-        end
-        ok, err, called = tryCall(self.requester.setAddress, self.requester, self.address)
         if called then
             return ok, err
         end

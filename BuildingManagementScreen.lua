@@ -12,7 +12,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.21"
+App.version = "v1.22"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -23,7 +23,7 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.requestManager = ColonyRequestManager:new()
-    self.logisticsRequester = LogisticsRequester:new("Warehouse*")
+    self.logisticsRequester = LogisticsRequester:new("Warehouse*", "Create_RedstoneRequester")
     self.scale = self:calculateScale()
     -- construct panels once and configure auto-layout
     self.maxEntries = 10

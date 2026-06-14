@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v1.3"
+LogisticsRequester.version = "v1.4"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -39,50 +39,8 @@ function LogisticsRequester:setDestination(address)
     if not self.requester then
         return false, "No RedstoneRequester peripheral available"
     end
-
-    local function tryCall(fn, ...)
-        if type(fn) ~= "function" then
-            return nil, "not a function", false
-        end
-        local ok, a, b = pcall(fn, ...)
-        if not ok then
-            return nil, a, false
-        end
-        return a, b, true
-    end
-
-    if self.requester.setAddress then
-        local ok, err, called = tryCall(self.requester.setAddress, self.address)
-        if called then
-            return ok, err
-        end
-        ok, err, called = tryCall(self.requester.setAddress, self.requester, self.address)
-        if called then
-            return ok, err
-        end
-    end
-    if self.requester.setDestination then
-        local ok, err, called = tryCall(self.requester.setDestination, self.address)
-        if called then
-            return ok, err
-        end
-        ok, err, called = tryCall(self.requester.setDestination, self.requester, self.address)
-        if called then
-            return ok, err
-        end
-    end
-    if self.requester.setTarget then
-        local ok, err, called = tryCall(self.requester.setTarget, self.address)
-        if called then
-            return ok, err
-        end
-        ok, err, called = tryCall(self.requester.setTarget, self.requester, self.address)
-        if called then
-            return ok, err
-        end
-    end
-
-    self.requester.address = self.address
+    self.requester.setAddress(address)
+    self.address = address
     return true
 end
 
@@ -138,13 +96,10 @@ function LogisticsRequester:requestItems(items)
     end
 
     for _, batch in ipairs(batches) do
-        ok, err = requestFn(batch, self.address)
-        if not ok then
-            return false, err or "Request submission failed"
-        end
+        self.requester.setRequest(batch)
+        self.requester.request()
+        os.sleep(0.1)
     end
-
-    return true
 end
 
 return LogisticsRequester

@@ -5,13 +5,14 @@ local ColonyData = require("ColonyData")
 local ColonyRequestManager = require("ColonyRequestManager")
 local RequestedLines = require("RequestedLines")
 local LogisticsLines = require("LogisticsLines")
+local LogisticsRequester = require("LogisticsRequester")
 local Navigation = require("Navigation")
 
 local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.10"
+App.version = "v1.11"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -22,6 +23,7 @@ function App:new()
     self.logisticsItems = {}
     self.message = "Press Request or Refresh to update data."
     self.requestManager = ColonyRequestManager:new()
+    self.logisticsRequester = LogisticsRequester:new("Warehouse*")
     self.scale = self:calculateScale()
     -- construct panels once and configure auto-layout
     self.maxEntries = 10
@@ -187,10 +189,26 @@ function App:refreshData()
 end
 
 function App:onRequest()
-    self.message = "Request sent through logistics requester."
-    self.term.setCursorPos(1, self.height)
-    self.term.write(string.rep(" ", self.width))
-    self:drawStatusBar()
+    if not self.logisticsRequester then
+        self.message = "No logistics requester module available."
+        self:draw()
+        return
+    end
+
+    if not self.requestedItems or #self.requestedItems == 0 then
+        self.message = "No builder request items available to send."
+        self:draw()
+        return
+    end
+
+    local ok, err = self.logisticsRequester:requestItems(self.requestedItems)
+    if ok then
+        self.message = "Submitted item request to the logistics network."
+    else
+        self.message = "Logistics request failed: " .. tostring(err)
+    end
+
+    self:draw()
 end
 
 function App:onRefresh()

@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v2.0"
+LogisticsRequester.version = "v2.1"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -48,6 +48,38 @@ function LogisticsRequester:isValidItem(item)
     return item and item.name and tonumber(item.count) and tonumber(item.count) > 0
 end
 
+function LogisticsRequester:logRequestState(message)
+    local logPath = "logistics_requester.log"
+    local handle, err = fs.open(logPath, "a")
+    if not handle then
+        return false, err
+    end
+    handle.writeLine(string.format("%s %s", os.date("%Y-%m-%d %H:%M:%S"), message))
+    handle.close()
+    return true
+end
+
+function LogisticsRequester:getRequesterState()
+    local state = {}
+    if self.requester and self.requester.getAddress then
+        local ok, address = pcall(self.requester.getAddress, self.requester)
+        if ok then
+            state.address = address
+        else
+            state.address = "<error>"
+        end
+    end
+    if self.requester and self.requester.getRequest then
+        local ok, request = pcall(self.requester.getRequest, self.requester)
+        if ok then
+            state.request = request
+        else
+            state.request = "<error>"
+        end
+    end
+    return state
+end
+
 function LogisticsRequester:requestItems(items)
     if type(items) ~= "table" then
         return false, "items must be a table"
@@ -75,13 +107,20 @@ function LogisticsRequester:requestItems(items)
     for _, item in ipairs(items) do
         if self:isValidItem(item) then
             local request = { name = tostring(item.name), count = tonumber(item.count) }
+            local state = self:getRequesterState()
+            self:logRequestState(string.format("before setRequest address=%s request=%s", tostring(state.address), tostring(textutils.serialize(state.request))))
             local success, requestErr = pcall(self.requester.setRequest, self.requester, request)
             if not success then
+                self:logRequestState(string.format("setRequest failed request=%s err=%s", tostring(textutils.serialize(request)), tostring(requestErr)))
                 return false, requestErr or "Failed to set item request"
             end
 
+            state = self:getRequesterState()
+            self:logRequestState(string.format("after setRequest address=%s request=%s", tostring(state.address), tostring(textutils.serialize(state.request))))
+
             success, requestErr = pcall(self.requester.request, self.requester)
             if not success then
+                self:logRequestState(string.format("request() failed request=%s err=%s", tostring(textutils.serialize(request)), tostring(requestErr)))
                 return false, requestErr or "Failed to send item request"
             end
 

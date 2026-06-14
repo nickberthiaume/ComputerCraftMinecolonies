@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v1.4"
+LogisticsRequester.version = "v2.0"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -44,29 +44,8 @@ function LogisticsRequester:setDestination(address)
     return true
 end
 
-function LogisticsRequester:chunkItems(items)
-    local chunks = {}
-    local current = {}
-
-    for _, item in ipairs(items) do
-        if item and item.name and tonumber(item.count) and tonumber(item.count) > 0 then
-            table.insert(current, {
-                name = tostring(item.name),
-                count = tonumber(item.count),
-            })
-
-            if #current >= 9 then
-                table.insert(chunks, current)
-                current = {}
-            end
-        end
-    end
-
-    if #current > 0 then
-        table.insert(chunks, current)
-    end
-
-    return chunks
+function LogisticsRequester:isValidItem(item)
+    return item and item.name and tonumber(item.count) and tonumber(item.count) > 0
 end
 
 function LogisticsRequester:requestItems(items)
@@ -80,13 +59,10 @@ function LogisticsRequester:requestItems(items)
         return false, "Request address not set"
     end
 
-    local batches = self:chunkItems(items)
-    if #batches == 0 then
-        return false, "No valid request items provided"
+    if not self.requester.setRequest then
+        return false, "RedstoneRequester does not support setRequest()"
     end
-
-    local requestFn = self.requester.request
-    if not requestFn then
+    if not self.requester.request then
         return false, "RedstoneRequester does not support request()"
     end
 
@@ -95,11 +71,29 @@ function LogisticsRequester:requestItems(items)
         return false, err or "Failed to set destination address"
     end
 
-    for _, batch in ipairs(batches) do
-        self.requester.setRequest(batch)
-        self.requester.request()
-        os.sleep(0.1)
+    local requestCount = 0
+    for _, item in ipairs(items) do
+        if self:isValidItem(item) then
+            local request = { name = tostring(item.name), count = tonumber(item.count) }
+            local success, requestErr = pcall(self.requester.setRequest, self.requester, request)
+            if not success then
+                return false, requestErr or "Failed to set item request"
+            end
+
+            success, requestErr = pcall(self.requester.request, self.requester)
+            if not success then
+                return false, requestErr or "Failed to send item request"
+            end
+
+            requestCount = requestCount + 1
+        end
     end
+
+    if requestCount == 0 then
+        return false, "No valid request items provided"
+    end
+
+    return true
 end
 
 return LogisticsRequester

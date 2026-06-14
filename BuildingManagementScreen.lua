@@ -152,6 +152,7 @@ function App:drawButtons()
     self.refreshBtn.y = buttonRow
 
     Navigation.layoutBackButton(self, buttonRow, self.width, {self.requestBtn, self.refreshBtn}, spacing)
+    self:logButtonPositions()
 
     self.requestBtn:draw()
     self.refreshBtn:draw()
@@ -173,6 +174,35 @@ function App:logClickEvent(event, x, y)
         return false, err
     end
     handle.writeLine(string.format("%s @ %d,%d %s", event, x or 0, y or 0, os.date("%Y-%m-%d %H:%M:%S")))
+    handle.close()
+    return true
+end
+
+function App:logButtonHit(event, x, y)
+    local logPath = "building_management_clicks.log"
+    local handle, err = fs.open(logPath, "a")
+    if not handle then
+        return false, err
+    end
+    local requestHit = self.requestBtn:isInside(x, y)
+    local refreshHit = self.refreshBtn:isInside(x, y)
+    local backHit = self.backBtn and self.backBtn:isInside(x, y)
+    handle.writeLine(string.format("Hit test @ %d,%d request=%s refresh=%s back=%s", x or 0, y or 0, tostring(requestHit), tostring(refreshHit), tostring(backHit)))
+    handle.close()
+    return true
+end
+
+function App:logButtonPositions()
+    local logPath = "building_management_clicks.log"
+    local handle, err = fs.open(logPath, "a")
+    if not handle then
+        return false, err
+    end
+    handle.writeLine(string.format("Request button at %d,%d size %d,%d", self.requestBtn.x, self.requestBtn.y, self.requestBtn.w, self.requestBtn.h))
+    handle.writeLine(string.format("Refresh button at %d,%d size %d,%d", self.refreshBtn.x, self.refreshBtn.y, self.refreshBtn.w, self.refreshBtn.h))
+    if self.backBtn then
+        handle.writeLine(string.format("Back button at %d,%d size %d,%d", self.backBtn.x, self.backBtn.y, self.backBtn.w, self.backBtn.h))
+    end
     handle.close()
     return true
 end
@@ -233,6 +263,7 @@ function App:runEventLoop()
         local event, side, x, y = os.pullEvent()
         if event == "monitor_touch" then
             self:logClickEvent("monitor_touch", x, y)
+            self:logButtonHit("monitor_touch", x, y)
             if self.requestBtn:isInside(x, y) then
                 self:onRequest()
             elseif self.refreshBtn:isInside(x, y) then
@@ -242,6 +273,7 @@ function App:runEventLoop()
             end
         elseif event == "mouse_click" then
             self:logClickEvent("mouse_click", x, y)
+            self:logButtonHit("mouse_click", x, y)
             if self.requestBtn:isInside(x, y) then
                 self:onRequest()
             elseif self.refreshBtn:isInside(x, y) then

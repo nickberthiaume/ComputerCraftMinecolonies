@@ -12,7 +12,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.17"
+App.version = "v1.18"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -262,7 +262,17 @@ function App:onRequest()
         return
     end
 
-    local ok, err = self.logisticsRequester:requestItems(self.requestedItems)
+    local pcallSuccess, ok, err = pcall(function()
+        return self.logisticsRequester:requestItems(self.requestedItems)
+    end)
+
+    if not pcallSuccess then
+        self:logDebug(string.format("onRequest: runtime error: %s", tostring(ok)))
+        self.message = "Logistics request failed: " .. tostring(ok)
+        self:draw()
+        return
+    end
+
     self:logDebug(string.format("onRequest: requestItems returned ok=%s err=%s", tostring(ok), tostring(err)))
     if ok then
         self.message = "Submitted item request to the logistics network."

@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v2.1"
+LogisticsRequester.version = "v2.2"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -118,11 +118,8 @@ function LogisticsRequester:requestItems(items)
             state = self:getRequesterState()
             self:logRequestState(string.format("after setRequest address=%s request=%s", tostring(state.address), tostring(textutils.serialize(state.request))))
 
-            success, requestErr = pcall(self.requester.request, self.requester)
-            if not success then
-                self:logRequestState(string.format("request() failed request=%s err=%s", tostring(textutils.serialize(request)), tostring(requestErr)))
-                return false, requestErr or "Failed to send item request"
-            end
+            self.requester.request()
+            self:logRequestState(string.format("request() called with address=%s request=%s", tostring(state.address), tostring(textutils.serialize(state.request))))
 
             requestCount = requestCount + 1
         end

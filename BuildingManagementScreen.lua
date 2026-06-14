@@ -12,7 +12,7 @@ local App = {}
 App.__index = App
 
 App.name = "Building Management"
-App.version = "v1.14"
+App.version = "v1.15"
 
 function App:new()
     local self = setmetatable({}, App)
@@ -151,14 +151,7 @@ function App:drawButtons()
     self.refreshBtn.x = self.requestBtn.x + self.requestBtn.w + spacing
     self.refreshBtn.y = buttonRow
 
-    if self.backBtn then
-        local backY = buttonRow - self.backBtn.h - 1
-        if backY < (self.headerRows and self.headerRows + 1 or 2) then
-            backY = buttonRow
-        end
-        self.backBtn.x = math.max(2, self.width - self.backBtn.w - 2)
-        self.backBtn.y = backY
-    end
+    Navigation.layoutBackButton(self, buttonRow, self.width, {self.requestBtn, self.refreshBtn}, spacing)
 
     self.requestBtn:draw()
     self.refreshBtn:draw()

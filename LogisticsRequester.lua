@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v2.2"
+LogisticsRequester.version = "v2.3"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -91,13 +91,6 @@ function LogisticsRequester:requestItems(items)
         return false, "Request address not set"
     end
 
-    if not self.requester.setRequest then
-        return false, "RedstoneRequester does not support setRequest()"
-    end
-    if not self.requester.request then
-        return false, "RedstoneRequester does not support request()"
-    end
-
     local ok, err = self:setDestination(self.address)
     if not ok then
         return false, err or "Failed to set destination address"
@@ -109,12 +102,7 @@ function LogisticsRequester:requestItems(items)
             local request = { name = tostring(item.name), count = tonumber(item.count) }
             local state = self:getRequesterState()
             self:logRequestState(string.format("before setRequest address=%s request=%s", tostring(state.address), tostring(textutils.serialize(state.request))))
-            local success, requestErr = pcall(self.requester.setRequest, self.requester, request)
-            if not success then
-                self:logRequestState(string.format("setRequest failed request=%s err=%s", tostring(textutils.serialize(request)), tostring(requestErr)))
-                return false, requestErr or "Failed to set item request"
-            end
-
+            self.requester.setRequest(request)
             state = self:getRequesterState()
             self:logRequestState(string.format("after setRequest address=%s request=%s", tostring(state.address), tostring(textutils.serialize(state.request))))
 

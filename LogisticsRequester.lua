@@ -1,6 +1,6 @@
 local LogisticsRequester = {}
 LogisticsRequester.__index = LogisticsRequester
-LogisticsRequester.version = "v1.0"
+LogisticsRequester.version = "v1.1"
 
 function LogisticsRequester:new(address, requesterName)
     local self = setmetatable({}, LogisticsRequester)
@@ -106,7 +106,7 @@ function LogisticsRequester:requestItems(items)
     end
 
     for _, batch in ipairs(batches) do
-        ok, err = requestFn(self.requester, batch, self.address)
+        ok, err = requestFn(batch, self.address)
         if not ok then
             return false, err or "Request submission failed"
         end

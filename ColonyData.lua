@@ -1,4 +1,5 @@
 local ColonyData = {}
+ColonyData.version = "v1.0"
 
 local function sampleRequested()
     return {
@@ -21,7 +22,7 @@ function ColonyData.parseRequested(raw)
     if type(raw) == "table" and #raw > 0 then
         for _, entry in ipairs(raw) do
             if entry and entry.name then
-                table.insert(items, {name = entry.name, count = entry.count or 0})
+                table.insert(items, {name = entry.name, displayName = entry.displayNname, count = entry.count or 0})
             end
         end
         msg = "Loaded requested items from colony API."
